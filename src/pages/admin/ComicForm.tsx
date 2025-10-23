@@ -75,9 +75,19 @@ export const ComicForm = () => {
   };
 
   const handleGenreChange = (value: string) => {
+    // Store the raw value, split only when needed
     const genres = value.split(',').map(g => g.trim()).filter(Boolean);
+    // Update the comic state with both raw value and parsed genres
     setComic({ ...comic, genres });
   };
+
+  const [genreInput, setGenreInput] = useState('');
+
+  useEffect(() => {
+    if (comic.genres) {
+      setGenreInput(comic.genres.join(', '));
+    }
+  }, [comic.id]); // Only update when comic changes (for editing)
 
   return (
     <AdminLayout>
@@ -138,8 +148,11 @@ export const ComicForm = () => {
                 <Label htmlFor="genres">Genres (comma separated)</Label>
                 <Input
                   id="genres"
-                  value={comic.genres?.join(', ')}
-                  onChange={(e) => handleGenreChange(e.target.value)}
+                  value={genreInput}
+                  onChange={(e) => {
+                    setGenreInput(e.target.value);
+                    handleGenreChange(e.target.value);
+                  }}
                   placeholder="Fantasy, Adventure, Action"
                   required
                 />

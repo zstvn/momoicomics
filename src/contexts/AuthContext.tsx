@@ -1,48 +1,58 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { authApi } from '@/services/api';
 
 interface AuthContextType {
   isAdmin: boolean;
   login: (username: string, password: string) => Promise<boolean>;
   logout: () => void;
+  loading: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [isAdmin, setIsAdmin] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Check if admin is already logged in
-    const adminStatus = localStorage.getItem('momoi_admin');
-    if (adminStatus === 'true') {
-      setIsAdmin(true);
-    }
+    // Verify session on mount
+    verifySession();
   }, []);
 
-  const login = async (username: string, password: string): Promise<boolean> => {
-    // TODO: Replace with actual API authentication
-    // const response = await fetch(`${API_BASE_URL}/auth/login`, {
-    //   method: 'POST',
-    //   headers: { 'Content-Type': 'application/json' },
-    //   body: JSON.stringify({ username, password }),
-    // });
-    
-    // Mock authentication - replace with real backend validation
-    if (username === 'admin' && password === 'admin123') {
-      setIsAdmin(true);
-      localStorage.setItem('momoi_admin', 'true');
-      return true;
+  const verifySession = async () => {
+    try {
+      const result = await authApi.verify();
+      setIsAdmin(result.isAdmin);
+    } catch (error) {
+      setIsAdmin(false);
+    } finally {
+      setLoading(false);
     }
-    return false;
   };
 
-  const logout = () => {
-    setIsAdmin(false);
-    localStorage.removeItem('momoi_admin');
+  const login = async (username: string, password: string): Promise<boolean> => {
+    try {
+      await authApi.login(username, password);
+      setIsAdmin(true);
+      return true;
+    } catch (error) {
+      console.error('Login failed:', error);
+      return false;
+    }
+  };
+
+  const logout = async () => {
+    try {
+      await authApi.logout();
+    } catch (error) {
+      console.error('Logout failed:', error);
+    } finally {
+      setIsAdmin(false);
+    }
   };
 
   return (
-    <AuthContext.Provider value={{ isAdmin, login, logout }}>
+    <AuthContext.Provider value={{ isAdmin, login, logout, loading }}>
       {children}
     </AuthContext.Provider>
   );
