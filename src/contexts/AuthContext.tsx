@@ -20,15 +20,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, []);
 
   const verifySession = async () => {
-    try {
-      const result = await authApi.verify();
-      setIsAdmin(result.isAdmin);
-    } catch (error) {
-      // 401 is expected when not logged in, don't log it
-      setIsAdmin(false);
-    } finally {
-      setLoading(false);
-    }
+    setLoading(true);
+    const result = await authApi.verify();
+    setIsAdmin(result.isAdmin);
+    setLoading(false);
   };
 
   const login = async (username: string, password: string): Promise<boolean> => {

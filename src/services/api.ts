@@ -247,7 +247,12 @@ export const authApi = {
 
   // Verify session
   verify: async (): Promise<{ isAdmin: boolean; user: any }> => {
-    return apiRequest<{ isAdmin: boolean; user: any }>('/auth/verify.php', {}, true); // Requires auth
+    try {
+      return await apiRequest<{ isAdmin: boolean; user: any }>('/auth/verify.php', {}, true);
+    } catch (error) {
+      // 401 is expected when not logged in, return false instead of throwing
+      return { isAdmin: false, user: null };
+    }
   },
 };
 
