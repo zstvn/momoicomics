@@ -14,11 +14,11 @@ async function handleResponse<T>(response: Response): Promise<T> {
 }
 
 // Helper function for API requests with credentials
-async function apiRequest<T = any>(endpoint: string, options: RequestInit = {}): Promise<T> {
+async function apiRequest<T = any>(endpoint: string, options: RequestInit = {}, requiresAuth = false): Promise<T> {
   const url = `${API_BASE_URL}${endpoint}`;
   const config: RequestInit = {
     ...options,
-    credentials: 'include', // Include cookies for session
+    credentials: requiresAuth ? 'include' : 'omit', // Only include cookies for auth endpoints
     headers: {
       'Content-Type': 'application/json',
       ...options.headers,
@@ -118,7 +118,7 @@ export const comicApi = {
     return apiRequest<Comic>('/comics/create.php', {
       method: 'POST',
       body: JSON.stringify(data),
-    });
+    }, true); // Requires auth
   },
 
   // Update comic (admin)
@@ -126,14 +126,14 @@ export const comicApi = {
     return apiRequest<Comic>(`/comics/update.php?id=${id}`, {
       method: 'POST',
       body: JSON.stringify(data),
-    });
+    }, true); // Requires auth
   },
 
   // Delete comic (admin)
   deleteComic: async (id: string): Promise<void> => {
     await apiRequest<void>(`/comics/delete.php?id=${id}`, {
       method: 'POST',
-    });
+    }, true); // Requires auth
   },
 };
 
@@ -153,7 +153,7 @@ export const chapterApi = {
     return apiRequest<Chapter>('/chapters/create.php', {
       method: 'POST',
       body: JSON.stringify(data),
-    });
+    }, true); // Requires auth
   },
 
   // Update chapter (admin)
@@ -161,14 +161,14 @@ export const chapterApi = {
     return apiRequest<Chapter>(`/chapters/update.php?id=${id}`, {
       method: 'POST',
       body: JSON.stringify(data),
-    });
+    }, true); // Requires auth
   },
 
   // Delete chapter (admin)
   deleteChapter: async (id: string): Promise<void> => {
     await apiRequest<void>(`/chapters/delete.php?id=${id}`, {
       method: 'POST',
-    });
+    }, true); // Requires auth
   },
 };
 
@@ -183,7 +183,7 @@ export const pageApi = {
     return apiRequest<Page>('/pages/create.php', {
       method: 'POST',
       body: JSON.stringify(data),
-    });
+    }, true); // Requires auth
   },
 
   // Update page (admin)
@@ -191,14 +191,14 @@ export const pageApi = {
     return apiRequest<Page>(`/pages/update.php?id=${id}`, {
       method: 'POST',
       body: JSON.stringify(data),
-    });
+    }, true); // Requires auth
   },
 
   // Delete page (admin)
   deletePage: async (id: string): Promise<void> => {
     await apiRequest<void>(`/pages/delete.php?id=${id}`, {
       method: 'POST',
-    });
+    }, true); // Requires auth
   },
 
   // Upload page image (admin)
@@ -235,19 +235,19 @@ export const authApi = {
     return apiRequest<{ token: string; user: any }>('/auth/login.php', {
       method: 'POST',
       body: JSON.stringify({ username, password }),
-    });
+    }, true); // Requires auth
   },
 
   // Logout
   logout: async (): Promise<void> => {
     await apiRequest<void>('/auth/logout.php', {
       method: 'POST',
-    });
+    }, true); // Requires auth
   },
 
   // Verify session
   verify: async (): Promise<{ isAdmin: boolean; user: any }> => {
-    return apiRequest<{ isAdmin: boolean; user: any }>('/auth/verify.php');
+    return apiRequest<{ isAdmin: boolean; user: any }>('/auth/verify.php', {}, true); // Requires auth
   },
 };
 
